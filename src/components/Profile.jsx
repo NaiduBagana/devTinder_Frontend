@@ -166,7 +166,7 @@ const Profile = () => {
 
     try {
       const response = await axios.patch(
-        "http://localhost:3001/profile/edit",
+        `${BASE_URL}/profile/edit`,
         editData,
         {
           withCredentials: true,
