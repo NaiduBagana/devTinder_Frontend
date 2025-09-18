@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { removeUser } from "../utils/userSlice";
@@ -11,6 +11,8 @@ const Navbar = () => {
   const user = useSelector((state) => state.user.user);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
 
   const handleLogout = async () => {
     try {
@@ -31,6 +33,25 @@ const Navbar = () => {
       console.error("Error during logout:", err);
       toast.error("Error during logout: " + err.message);
     }
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  // Close dropdown when navigating
+  const handleLinkClick = () => {
+    setIsDropdownOpen(false);
   };
 
   return (
@@ -77,10 +98,13 @@ const Navbar = () => {
             )}
 
             {/* Avatar Dropdown */}
-            <div className="relative group">
-              <div className="flex items-center space-x-2 cursor-pointer">
+            <div className="relative" ref={dropdownRef}>
+              <div
+                className="flex items-center space-x-2 cursor-pointer"
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              >
                 <div className="relative">
-                  <div className="absolute inset-0 bg-gradient-to-r from-pink-500 to-purple-600 rounded-full blur-sm opacity-0 group-hover:opacity-75 transition-opacity"></div>
+                  <div className="absolute inset-0 bg-gradient-to-r from-pink-500 to-purple-600 rounded-full blur-sm opacity-0 hover:opacity-75 transition-opacity"></div>
                   <div className="relative w-10 h-10 rounded-full overflow-hidden ring-2 ring-gray-700 hover:ring-pink-500/50 transition-all duration-200">
                     {!user ? (
                       <div className="w-full h-full bg-gray-700 flex items-center justify-center">
@@ -102,7 +126,13 @@ const Navbar = () => {
 
               {/* Dropdown Menu */}
               {user && (
-                <div className="absolute right-0 top-full mt-2 w-64 bg-gray-800/95 backdrop-blur-sm rounded-xl shadow-xl border border-gray-700/50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform translate-y-1 group-hover:translate-y-0">
+                <div
+                  className={`absolute right-0 top-full mt-2 w-64 bg-gray-800/95 backdrop-blur-sm rounded-xl shadow-xl border border-gray-700/50 transition-all duration-200 transform ${
+                    isDropdownOpen
+                      ? "opacity-100 visible translate-y-0"
+                      : "opacity-0 invisible translate-y-1"
+                  }`}
+                >
                   <div className="p-4 border-b border-gray-700/50">
                     <div className="flex items-center space-x-3">
                       <div className="w-12 h-12 rounded-full overflow-hidden ring-2 ring-pink-500/30">
@@ -127,7 +157,8 @@ const Navbar = () => {
                   <div className="p-2">
                     <Link
                       to="/profile"
-                      className="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-gray-700/50 transition-colors duration-150 group/item"
+                      onClick={handleLinkClick}
+                      className="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-gray-700/50 active:bg-gray-700/70 transition-colors duration-150 group/item"
                     >
                       <User className="w-4 h-4 text-gray-400 group-hover/item:text-pink-400" />
                       <span className="text-gray-200 group-hover/item:text-white">
@@ -140,7 +171,8 @@ const Navbar = () => {
 
                     <Link
                       to="/connections"
-                      className="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-gray-700/50 transition-colors duration-150 group/item"
+                      onClick={handleLinkClick}
+                      className="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-gray-700/50 active:bg-gray-700/70 transition-colors duration-150 group/item"
                     >
                       <Users className="w-4 h-4 text-gray-400 group-hover/item:text-pink-400" />
                       <span className="text-gray-200 group-hover/item:text-white">
@@ -150,7 +182,8 @@ const Navbar = () => {
 
                     <Link
                       to="/requests"
-                      className="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-gray-700/50 transition-colors duration-150 group/item"
+                      onClick={handleLinkClick}
+                      className="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-gray-700/50 active:bg-gray-700/70 transition-colors duration-150 group/item"
                     >
                       <Bell className="w-4 h-4 text-gray-400 group-hover/item:text-pink-400" />
                       <span className="text-gray-200 group-hover/item:text-white">
@@ -160,8 +193,11 @@ const Navbar = () => {
 
                     <div className="border-t border-gray-700/50 mt-2 pt-2">
                       <button
-                        onClick={handleLogout}
-                        className="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-red-500/10 transition-colors duration-150 group/item w-full"
+                        onClick={() => {
+                          handleLogout();
+                          setIsDropdownOpen(false);
+                        }}
+                        className="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-red-500/10 active:bg-red-500/20 transition-colors duration-150 group/item w-full"
                       >
                         <LogOut className="w-4 h-4 text-gray-400 group-hover/item:text-red-400" />
                         <span className="text-gray-200 group-hover/item:text-red-400">
